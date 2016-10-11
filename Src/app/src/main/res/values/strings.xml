@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Welcome To Moscow</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="view_map">View map</string>
 </resources>
