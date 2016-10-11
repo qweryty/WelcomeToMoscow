@@ -7,6 +7,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -43,7 +44,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.getUiSettings().setZoomControlsEnabled(true);
         // add speaker marker
         LatLng TutorialsPoint = new LatLng(-34 , 150);
-        mMap.addMarker(new MarkerOptions().position(TutorialsPoint).title("TutorialsPoint"));
+        MarkerOptions speaker_opts = new MarkerOptions()
+                .position(TutorialsPoint)
+                .title("Super Sonic")
+                .snippet("This stuff is cool")
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.quantum_ic_volume_off_white_36));
+        mMap.addMarker(speaker_opts);
         // Add a marker in Sydney and move the camera
         LatLng sydney = new LatLng(-34, 151);
         mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
