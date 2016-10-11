@@ -40,8 +40,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
         // change map type
         mMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
-        mMapxgetUiSettings().setZoomControlsEnabled(true);
-        // add tutorials point marker
+        mMap.getUiSettings().setZoomControlsEnabled(true);
+        // add speaker marker
         LatLng TutorialsPoint = new LatLng(-34 , 150);
         mMap.addMarker(new MarkerOptions().position(TutorialsPoint).title("TutorialsPoint"));
         // Add a marker in Sydney and move the camera
