@@ -1,7 +1,9 @@
 package newteam2.welcometomoscow;
 
-import android.support.v4.app.FragmentActivity;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentActivity;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -9,7 +11,6 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
@@ -26,6 +27,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        LocationManager service = (LocationManager) getSystemService(LOCATION_SERVICE);
+        boolean enabled = service.isProviderEnabled(LocationManager.GPS_PROVIDER);
+
+        // check if enabled and if not send user to the GSP settings
+        // display a dialog and suggest to go to the settings, to turn it on
+        if (!enabled) {
+            DialogFragment d = new DialogToEnableGPS();
+            d.show(getSupportFragmentManager(), "gps_dialog");
+        }
+    }
 
     /**
      * Manipulates the map once available.
@@ -47,8 +61,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         MarkerOptions speaker_opts = new MarkerOptions()
                 .position(TutorialsPoint)
                 .title("Super Sonic")
-                .snippet("This stuff is cool")
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.quantum_ic_volume_off_white_36));
+                .snippet("This stuff is cool");
         mMap.addMarker(speaker_opts);
         // Add a marker in Sydney and move the camera
         LatLng sydney = new LatLng(-34, 151);
