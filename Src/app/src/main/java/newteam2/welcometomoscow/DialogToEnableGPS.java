@@ -15,16 +15,16 @@ public class DialogToEnableGPS extends DialogFragment {
         // Use the Builder class for convenient dialog construction
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         // Question to display
-        builder.setMessage("This app works better with GPS enabled. Turn on GPS now?");
+        builder.setMessage(R.string.ask_gps_dialog);
         // User accepted the dialog
-        builder.setPositiveButton("yes", new DialogInterface.OnClickListener() {
+        builder.setPositiveButton(R.string.answer_yes, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
                 startActivity(intent);
             }
         });
         // User cancelled the dialog
-        builder.setNegativeButton("no", new DialogInterface.OnClickListener() {
+        builder.setNegativeButton(R.string.answer_no, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 // nothing to do, just continue as normal
             }

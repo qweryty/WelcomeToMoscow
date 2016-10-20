@@ -2,7 +2,11 @@ package newteam2.welcometomoscow;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.location.Criteria;
+import android.location.Location;
 import android.location.LocationManager;
+import android.location.LocationListener;
+import android.location.LocationProvider;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
@@ -24,13 +28,19 @@ interface Action {
     void run();
 }
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener {
 
     private String currentQuestName;
     private GoogleMap mMap;
-    private CurrentUserLocation userLocation;
     private LocationManager locationService;
     private Marker userMapMarker;
+    private Location currentLocation;
+    private String providerName;
+
+    // minimum time interval between location updates, in milliseconds
+    private static final int min_time_delay = 700;
+    // minimum distance between location updates, in meters
+    private static final int min_distance = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,18 +62,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 UpdateLocationMarker();
             }
         };
-        userLocation = new CurrentUserLocation(locationService, permission, location_changed);
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
             currentQuestName = extras.getString("quest_name");
         }
+        findBestProvider();
     }
 
 
     @Override
     protected void onPause() {
         super.onPause();
-        userLocation.Pause();
+        Pause();
     }
 
     @Override
@@ -75,7 +85,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             DialogFragment d = new DialogToEnableGPS();
             d.show(getSupportFragmentManager(), "gps_dialog");
         }
-        userLocation.Resume();
+        Resume();
     }
 
     /**
@@ -94,7 +104,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
         mMap.getUiSettings().setZoomControlsEnabled(true);
         // add current position marker
-        LatLng user_loc = userLocation.getLatLng();
+        LatLng user_loc = getLatLng();
         MarkerOptions user_opts = new MarkerOptions()
                 .position(user_loc)
                 .title("You")
@@ -139,9 +149,98 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      * Calleback to track user location changes.
      */
     private void UpdateLocationMarker() {
-        LatLng coords = userLocation.getLatLng();
+        LatLng coords = getLatLng();
         userMapMarker.setPosition(coords);
         mMap.moveCamera(CameraUpdateFactory.newLatLng(coords));
+    }
+
+    /**
+     * Return the last known/current location
+     */
+    public LatLng getLatLng() {
+        if (currentLocation == null) {
+            return new LatLng(0.0, 0.0);
+        }
+        else {
+            return new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+        }
+    }
+
+
+    /**
+     * Start querying for location updates. Call this in onResume of containing Activity
+     */
+    public void Resume() {
+        if (checkPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+                || checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION))
+        {
+            // request initial location
+            if (currentLocation == null) {
+                currentLocation = locationService.getLastKnownLocation(providerName);
+            }
+            // and sign up for updates
+            locationService.requestLocationUpdates(providerName, min_time_delay, min_distance, (android.location.LocationListener) this);
+        }
+    }
+
+    /**
+     * Pause querying for location updates. Call this in onPause of Activity
+     */
+    public void Pause() {
+        if (checkPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+                || checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION))
+        {
+            locationService.removeUpdates(this);
+        }
+    }
+
+    /**
+     * Called when the location has changed.
+     */
+    @Override
+    public void onLocationChanged(Location location) {
+        currentLocation = location;
+        UpdateLocationMarker();
+    }
+
+    /**
+     * Called when provider status changes.
+     */
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+        if (provider == this.providerName) {
+            if (status == LocationProvider.OUT_OF_SERVICE) {
+                // if the provider is out of service, and this is not expected to change in the near future
+                // TODO: show some thing on screen to tell user that location is unavailiable
+            }
+        }
+    }
+
+    /**
+     * Called when the provider is enabled by the user.
+     */
+    @Override
+    public void onProviderEnabled(String provider) {
+        findBestProvider();
+    }
+
+    /**
+     * Called when the provider is disabled by the user. If requestLocationUpdates
+     * is called on an already disabled provider, this method is called immediately.
+     */
+    @Override
+    public void onProviderDisabled(String provider) {
+        // try to find another provider
+        findBestProvider();
+    }
+
+    /**
+     * Tries to find the best provider for location.
+     */
+    private void findBestProvider() {
+        // Define the criteria how to select the locatioin provider -> use default
+        Criteria criteria = new Criteria();
+        providerName = locationService.getBestProvider(criteria, false);
     }
 }
 
