@@ -26,6 +26,7 @@ interface Action {
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
+    private String currentQuestName;
     private GoogleMap mMap;
     private CurrentUserLocation userLocation;
     private LocationManager locationService;
@@ -52,6 +53,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         };
         userLocation = new CurrentUserLocation(locationService, permission, location_changed);
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            currentQuestName = extras.getString("quest_name");
+        }
     }
 
 
@@ -93,6 +98,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         MarkerOptions user_opts = new MarkerOptions()
                 .position(user_loc)
                 .title("You")
+                .snippet(currentQuestName)
                 .rotation(180.0f);
         userMapMarker = mMap.addMarker(user_opts);
         // add random marker
