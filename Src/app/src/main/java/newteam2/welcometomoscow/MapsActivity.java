@@ -36,6 +36,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Marker userMapMarker;
     private Location currentLocation;
     private String providerName;
+    private QuestInfo currentQuestInfo;
 
     // minimum time interval between location updates, in milliseconds
     private static final int min_time_delay = 700;
@@ -50,22 +51,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
         locationService = (LocationManager) getSystemService(LOCATION_SERVICE);
-        Predicate<String> permission = new Predicate<String>() {
-            public boolean test(String permission_name) {
-                return checkPermission(permission_name);
-            }
-        };
-        Action location_changed = new Action() {
-            @Override
-            public void run() {
-                UpdateLocationMarker();
-            }
-        };
-        Bundle extras = getIntent().getExtras();
-        if (extras != null) {
-            currentQuestName = extras.getString("quest_name");
-        }
+
+        // Get quest info, from choose quest activity
+        MainApplication app = (MainApplication) getApplication();
+        currentQuestInfo = app.getCurrentQuestInfo();
+        currentQuestName = currentQuestInfo.name;
+
         findBestProvider();
     }
 

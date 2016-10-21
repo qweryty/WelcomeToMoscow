@@ -67,8 +67,11 @@ public class MainActivity extends AppCompatActivity {
         if (selectedQuest == null) {
             return;
         }
+        // Get ready to share quest info
+        MainApplication app = (MainApplication) getApplication();
+        app.setCurrentQuestInfo(selectedQuest);
+        // start activity
         Intent i = new Intent(this, MapsActivity.class);
-        i.putExtra("quest_name", selectedQuest.name);
         startActivity(i);
     }
 
