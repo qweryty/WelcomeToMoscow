@@ -16,11 +16,13 @@ class QuestInfo {
     String info_short;
     String info_long;
     int iconId;
+    long id;
 
-    QuestInfo(String name, String info_short, String info_long, int icon) {
+    QuestInfo(String name, String info_short, String info_long, int icon, long id) {
         this.name = name;
         this.info_short = info_short;
         this.info_long = info_long;
         this.iconId = icon;
+        this.id = id;
     }
 }

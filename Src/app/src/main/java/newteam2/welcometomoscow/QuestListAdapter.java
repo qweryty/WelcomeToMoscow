@@ -14,11 +14,11 @@ import java.util.List;
  * Created by artem on 10/20/16.
  */
 
-public class QuestMenuEntryAdapter extends ArrayAdapter<QuestInfo> {
+public class QuestListAdapter extends ArrayAdapter<QuestInfo> {
     private final Context context;
     private final List<QuestInfo> values;
 
-    public QuestMenuEntryAdapter(Context context, List<QuestInfo> values) {
+    public QuestListAdapter(Context context, List<QuestInfo> values) {
         super(context, -1, values);
         this.context = context;
         this.values = values;
