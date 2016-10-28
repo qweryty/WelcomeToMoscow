@@ -1,6 +1,7 @@
 package newteam2.welcometomoscow;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
@@ -19,14 +20,6 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-
-interface Predicate<T> {
-    boolean test(T value);
-}
-
-interface Action {
-    void run();
-}
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener {
 
@@ -54,12 +47,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         locationService = (LocationManager) getSystemService(LOCATION_SERVICE);
 
+        findBestProvider();
+
+        // This MUST be the LAST thing we do.
+        // To avoid: http://www.developerphil.com/dont-store-data-in-the-application-object/
         // Get quest info, from choose quest activity
         MainApplication app = (MainApplication) getApplication();
         currentQuestInfo = app.getCurrentQuestInfo();
+        if (currentQuestInfo == null) {
+            // There is no QuestInfo, just go back to "choose quest menu"
+            finish();
+            return;
+        }
         currentQuestName = currentQuestInfo.name;
-
-        findBestProvider();
     }
 
 
