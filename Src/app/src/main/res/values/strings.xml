@@ -7,4 +7,7 @@
     <string name="ask_gps_dialog">This app works better with GPS enabled. Turn on GPS now?</string>
     <string name="answer_yes">yes</string>
     <string name="answer_no">no</string>
+    <string name="title_activity_quest_event">QuestEventActivity</string>
+    <string name="go_back_to_map">Go back to map!</string>
+    <string name="picture_of_the_quest_event_area">Picture of the quest event area</string>
 </resources>

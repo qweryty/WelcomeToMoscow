@@ -17,6 +17,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -30,10 +31,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Location currentLocation;
     private String providerName;
     private QuestInfo currentQuestInfo;
+    private PlayerData playerData;
+    private int EventCounter = 0;
 
-    // minimum time interval between location updates, in milliseconds
+    // minimum time interval between latLng updates, in milliseconds
     private static final int min_time_delay = 700;
-    // minimum distance between location updates, in meters
+    // minimum distance between latLng updates, in meters
     private static final int min_distance = 2;
 
     @Override
@@ -49,13 +52,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         findBestProvider();
 
-        // This MUST be the LAST thing we do.
         // To avoid: http://www.developerphil.com/dont-store-data-in-the-application-object/
         // Get quest info, from choose quest activity
         MainApplication app = (MainApplication) getApplication();
         currentQuestInfo = app.getCurrentQuestInfo();
         if (currentQuestInfo == null) {
             // There is no QuestInfo, just go back to "choose quest menu"
+            finish();
+            return;
+        }
+        playerData = app.getCurrentPlayerData();
+        if (playerData == null) {
+            // There is no PlayerData, just go back to "choose player name" or something
             finish();
             return;
         }
@@ -96,6 +104,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // change map type
         mMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
         mMap.getUiSettings().setZoomControlsEnabled(true);
+        mMap.getUiSettings().setMyLocationButtonEnabled(true);
+        mMap.getUiSettings().setCompassEnabled(true);
+
         // add current position marker
         LatLng user_loc = getLatLng();
         MarkerOptions user_opts = new MarkerOptions()
@@ -104,25 +115,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .snippet(currentQuestName)
                 .rotation(180.0f);
         userMapMarker = mMap.addMarker(user_opts);
-        // add random marker
-        LatLng TutorialsPoint = new LatLng(user_loc.latitude + 1.0, user_loc.longitude + 1.0);
-        MarkerOptions speaker_opts = new MarkerOptions()
-                .position(TutorialsPoint)
-                .title("Super Sonic")
-                .snippet("This stuff is cool");
-        mMap.addMarker(speaker_opts);
-        // Add a marker in Moscow and move the camera
-        LatLng moscow_loc = new LatLng(user_loc.latitude - 1.0, user_loc.longitude - 1.0);
-        MarkerOptions moscow_opts = new MarkerOptions()
-                .position(moscow_loc)
-                .title("Marker in Moscow");
-        mMap.addMarker(moscow_opts);
         // shift camera
         mMap.moveCamera(CameraUpdateFactory.newLatLng(user_loc));
     }
 
+
     /**
-     * Method to perform permission checks for location access.
+     * Method to perform permission checks for latLng access.
      * @param perm_name Name of the permission. Either: ACCESS_COARSE_LOCATION or ACCESS_FINE_LOCATION
      * @return True if enabled.
      */
@@ -139,16 +138,57 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     /**
-     * Calleback to track user location changes.
+     * Calleback to track user latLng changes.
      */
     private void UpdateLocationMarker() {
-        LatLng coords = getLatLng();
-        userMapMarker.setPosition(coords);
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(coords));
+        playerData.latLng = getLatLng();
+        userMapMarker.setPosition(playerData.latLng);
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(playerData.latLng));
+
+        // check for next quest
+        if (EventCounter < currentQuestInfo.events.size()) {
+            final QuestEvent nextEv = currentQuestInfo.events.get(EventCounter);
+            if (nextEv.isReady.test(playerData)) {
+                // player is ready for the next event
+                EventCounter++;
+
+                // add marker on map
+                LatLng qmLatLng = nextEv.mapLatLng;
+                MarkerOptions questMark = new MarkerOptions()
+                        .position(qmLatLng)
+                        .title("QUEST")
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+                Marker m = mMap.addMarker(questMark);
+                m.setTag(nextEv); // pass quest event as a marker Tag
+
+                // move camera to center on new marker
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(qmLatLng));
+
+                // set callback to start new activity
+                mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                    @Override
+                    public boolean onMarkerClick(Marker marker) {
+                        // Get ready to share info
+                        MainApplication app = (MainApplication) getApplication();
+                        // update global player data
+                        app.setCurrentPlayerData(playerData);
+                        app.setCurrentQuestEvent((QuestEvent) marker.getTag());
+                        // start activity
+                        Intent i = new Intent(MapsActivity.this, QuestEventActivity.class);
+                        startActivity(i);
+                        // Apply default maps behaviour to marker
+                        return false;
+                    }
+                });
+            }
+        }
+        else {
+            // TODO: if there are no locations, show the ending screen
+        }
     }
 
     /**
-     * Return the last known/current location
+     * Return the last known/current latLng
      */
     public LatLng getLatLng() {
         if (currentLocation == null) {
@@ -161,13 +201,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     /**
-     * Start querying for location updates. Call this in onResume of containing Activity
+     * Start querying for latLng updates. Call this in onResume of containing Activity
      */
     public void Resume() {
         if (checkPermission(Manifest.permission.ACCESS_FINE_LOCATION)
                 || checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION))
         {
-            // request initial location
+            // request initial latLng
             if (currentLocation == null) {
                 currentLocation = locationService.getLastKnownLocation(providerName);
             }
@@ -177,7 +217,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     /**
-     * Pause querying for location updates. Call this in onPause of Activity
+     * Pause querying for latLng updates. Call this in onPause of Activity
      */
     public void Pause() {
         if (checkPermission(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -188,7 +228,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     /**
-     * Called when the location has changed.
+     * Called when the latLng has changed.
      */
     @Override
     public void onLocationChanged(Location location) {
@@ -204,7 +244,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (provider == this.providerName) {
             if (status == LocationProvider.OUT_OF_SERVICE) {
                 // if the provider is out of service, and this is not expected to change in the near future
-                // TODO: show some thing on screen to tell user that location is unavailiable
+                // TODO: show some thing on screen to tell user that latLng is unavailiable
             }
         }
     }
@@ -228,7 +268,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     /**
-     * Tries to find the best provider for location.
+     * Tries to find the best provider for latLng.
      */
     private void findBestProvider() {
         // Define the criteria how to select the locatioin provider -> use default
