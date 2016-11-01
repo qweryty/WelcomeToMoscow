@@ -1,6 +1,8 @@
 package newteam2.welcometomoscow;
 
 import android.Manifest;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
@@ -18,6 +20,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -33,6 +36,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private QuestInfo currentQuestInfo;
     private PlayerData playerData;
     private int EventCounter = 0;
+    private boolean cameraIsBusy = false;
 
     // minimum time interval between latLng updates, in milliseconds
     private static final int min_time_delay = 700;
@@ -115,8 +119,47 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .snippet(currentQuestName)
                 .rotation(180.0f);
         userMapMarker = mMap.addMarker(user_opts);
-        // shift camera
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(user_loc));
+
+        // set up camera
+        CameraPosition cameraPosition = new CameraPosition.Builder()
+                .target(user_loc)      // Sets the center of the map
+                .zoom(17)              // Sets the zoom
+                .bearing(0)           // Sets the orientation of the camera
+                .tilt(20)              // Sets the tilt of the camera, gives 3D effect
+                .build();              // Creates a CameraPosition from the builder
+        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+
+        // Set Idle listener. Now we know when camera is busy.
+        mMap.setOnCameraIdleListener(new GoogleMap.OnCameraIdleListener() {
+            @Override
+            public void onCameraIdle() {
+                cameraIsBusy = false;
+            }
+        });
+        // Set Busy listener.Now we know when camera is busy.
+        mMap.setOnCameraMoveStartedListener(new GoogleMap.OnCameraMoveStartedListener() {
+            @Override
+            public void onCameraMoveStarted(int i) {
+                cameraIsBusy = true;
+            }
+        });
+
+        // set listener, to respond to mark clicks.
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                if (marker.getTag() instanceof QuestEvent) {
+                    // when its a quest marker, start new activity with photos/story
+                    MainApplication app = (MainApplication) getApplication();
+                    app.setCurrentPlayerData(playerData);
+                    app.setCurrentQuestEvent((QuestEvent) marker.getTag());
+                    Intent i = new Intent(MapsActivity.this, QuestEventActivity.class);
+                    startActivity(i);
+                }
+                // Apply default maps behaviour to marker
+                return false;
+            }
+        });
     }
 
 
@@ -138,12 +181,56 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     /**
+     * Move camera to some position.
+     */
+    public void animateCameraTo(final LatLng target)
+    {
+        CameraPosition camPosition = mMap.getCameraPosition();
+        // To avoid: http://stackoverflow.com/questions/14816475/android-google-maps-v2-camera-animation
+        // Check if this positions are the same.
+        if (!((Math.floor(camPosition.target.latitude * 100) / 100) == (Math.floor(target.latitude * 100) / 100) && (Math.floor(camPosition.target.longitude * 100) / 100) == (Math.floor(target.longitude * 100) / 100)))
+        {
+            // temporarily pause scroll gestures
+            mMap.getUiSettings().setScrollGesturesEnabled(false);
+            mMap.animateCamera( CameraUpdateFactory.newLatLng(target)
+                    , new GoogleMap.CancelableCallback() {
+                @Override
+                public void onFinish()
+                {
+                    mMap.getUiSettings().setScrollGesturesEnabled(true);
+                }
+
+                @Override
+                public void onCancel()
+                {
+                    mMap.getUiSettings().setAllGesturesEnabled(true);
+                }
+            });
+        }
+    }
+
+    /**
+     * Play animation to fade the marker into the map.
+     * @param m Marker to fade.
+     * @param time_millisec Time in milliseconds for the animation.
+     */
+    ObjectAnimator MakeMarkerFadeAnimation(Marker m, int time_millisec) {
+        // Set up marker animation
+        ObjectAnimator fadeAnim = ObjectAnimator.ofFloat(m, "Alpha", 0f, 1f);
+        fadeAnim.setDuration(time_millisec);
+        return fadeAnim;
+    }
+
+    /**
      * Calleback to track user latLng changes.
      */
     private void UpdateLocationMarker() {
         playerData.latLng = getLatLng();
         userMapMarker.setPosition(playerData.latLng);
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(playerData.latLng));
+        // only move the camera to player position, when its free
+        if (! cameraIsBusy) {
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(playerData.latLng));
+        }
 
         // check for next quest
         if (EventCounter < currentQuestInfo.events.size()) {
@@ -157,29 +244,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 MarkerOptions questMark = new MarkerOptions()
                         .position(qmLatLng)
                         .title("QUEST")
-                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+                        .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_quest_event_map_click));
                 Marker m = mMap.addMarker(questMark);
-                m.setTag(nextEv); // pass quest event as a marker Tag
 
-                // move camera to center on new marker
-                mMap.moveCamera(CameraUpdateFactory.newLatLng(qmLatLng));
+                // pass quest event as a marker Tag
+                m.setTag(nextEv);
 
-                // set callback to start new activity
-                mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-                    @Override
-                    public boolean onMarkerClick(Marker marker) {
-                        // Get ready to share info
-                        MainApplication app = (MainApplication) getApplication();
-                        // update global player data
-                        app.setCurrentPlayerData(playerData);
-                        app.setCurrentQuestEvent((QuestEvent) marker.getTag());
-                        // start activity
-                        Intent i = new Intent(MapsActivity.this, QuestEventActivity.class);
-                        startActivity(i);
-                        // Apply default maps behaviour to marker
-                        return false;
-                    }
-                });
+                ObjectAnimator markerFadeInto = MakeMarkerFadeAnimation(m, 400);
+                AnimatorSet animatorSet = new AnimatorSet();
+                animatorSet.play(markerFadeInto).after(50);
+                animatorSet.start();
+
+                // if camera is free also add camera animation
+                if (! cameraIsBusy) {
+                    animateCameraTo(qmLatLng);
+                }
             }
         }
         else {
