@@ -35,7 +35,6 @@ def run(args):
     i = 0
     d0 = None
     interval = 0
-    realtime = args.realtime
 
     placemarks = xml.getElementsByTagName('Placemark')
     print("Got %d place marks" % len(placemarks))
