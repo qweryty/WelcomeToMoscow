@@ -4,7 +4,10 @@ package newteam2.welcometomoscow;
  * Created by artem on 10/30/16.
  */
 
+
 import com.google.android.gms.maps.model.LatLng;
+
+
 
 public class QuestEvent {
     LatLng mapLatLng;
