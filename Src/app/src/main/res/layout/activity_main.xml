@@ -48,4 +48,5 @@
         android:layout_above="@id/quest_all_info"
         android:id="@+id/choose_quest" />
 
+
 </RelativeLayout>

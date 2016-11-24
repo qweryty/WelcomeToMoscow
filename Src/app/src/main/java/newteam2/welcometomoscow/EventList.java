@@ -34,6 +34,92 @@ public class EventList {
     @Expose
     private ArrayList<Event> events = new ArrayList<>();
 
+    class Event {
+        @SerializedName("name")
+        @Expose
+        private String nameq;
+
+        @SerializedName("lat")
+        @Expose
+        private Double lat;
+
+        @SerializedName("long")
+        @Expose
+        private Double $long;
+
+        @SerializedName("desc")
+        @Expose
+        private String desc;
+
+        @SerializedName("dist")
+        @Expose
+        private String dist;
+
+        @SerializedName("question")
+        @Expose
+        private String question;
+
+        @SerializedName("answer")
+        @Expose
+        private String answer;
+
+        public String getNameq() {
+            return nameq;
+        }
+
+        public void setNameq(String nameq) {
+            this.nameq = nameq;
+        }
+
+        public String getAnswer() {
+            return answer;
+        }
+
+        public void setAnswer(String answer) {
+            this.answer = answer;
+        }
+
+        public Double get$long() {
+            return $long;
+        }
+
+        public void set$long(Double $long) {
+            this.$long = $long;
+        }
+
+        public Double getLat() {
+            return lat;
+        }
+
+        public void setLat(Double lat) {
+            this.lat = lat;
+        }
+
+        public String getDesc() {
+            return desc;
+        }
+
+        public void setDesc(String desc) {
+            this.desc = desc;
+        }
+
+        public String getDist() {
+            return dist;
+        }
+
+        public void setDist(String dist) {
+            this.dist = dist;
+        }
+
+        public String getQuestion() {
+            return question;
+        }
+
+        public void setQuestion(String question) {
+            this.question = question;
+        }
+    }
+
     public String getQuest_id() {
         return quest_id;
     }

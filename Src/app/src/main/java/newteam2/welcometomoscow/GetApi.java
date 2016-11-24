@@ -1,5 +1,7 @@
 package newteam2.welcometomoscow;
 
+import java.util.List;
+
 import retrofit2.Call;
 import retrofit2.http.GET;
 
@@ -9,5 +11,5 @@ import retrofit2.http.GET;
 
 public interface GetApi {
     @GET("quest/1")
-    Call<EventList> getData();
+    Call<QuestInfo> getData();
 }
