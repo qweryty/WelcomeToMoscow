@@ -1,11 +1,11 @@
 package newteam2.welcometomoscow;
 
+import android.app.Activity;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.TextView;
 
-public class QuestEventActivity extends AppCompatActivity {
+public class QuestEventActivity extends Activity {
     private QuestEvent currentEvent;
 
     @Override

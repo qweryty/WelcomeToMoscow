@@ -10,4 +10,16 @@
     <string name="title_activity_quest_event">QuestEventActivity</string>
     <string name="go_back_to_map">Go back to map!</string>
     <string name="picture_of_the_quest_event_area">Picture of the quest event area</string>
+    <string name="title_activity_quest_list_drawer">QuestListDrawer</string>
+
+    <string name="title_section1">Section 1</string>
+    <string name="title_section2">Section 2</string>
+    <string name="title_section3">Section 3</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_example">Example action</string>
+
+    <string name="action_settings">Settings</string>
 </resources>
