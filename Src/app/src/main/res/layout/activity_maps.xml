@@ -88,10 +88,11 @@
         android:divider="@android:color/transparent"
         android:dividerHeight="0dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Здесь должны быть текущие задания" />
+        <fragment
+            android:name="newteam2.welcometomoscow.QuestsListFragment"
+            android:id="@+id/quests_list_fragment"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent" />
     </RelativeLayout>
 
     <RelativeLayout

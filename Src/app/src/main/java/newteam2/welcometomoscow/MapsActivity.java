@@ -14,7 +14,10 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.DrawerLayout;
 import android.view.View;
 
@@ -45,6 +48,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private DrawerLayout drawerLayout;
     private View questsListDrawer;
     private View achievementsListDrawer;
+    private QuestsListFragment questsListFragment;
 
     // minimum time interval between latLng updates, in milliseconds
     private static final int min_time_delay = 700;
@@ -98,6 +102,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 drawerLayout.openDrawer(achievementsListDrawer);
             }
         });
+
+        questsListFragment = (QuestsListFragment) getFragmentManager().findFragmentById(R.id.quests_list_fragment);
     }
 
 
@@ -379,6 +385,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Define the criteria how to select the locatioin provider -> use default
         Criteria criteria = new Criteria();
         providerName = locationService.getBestProvider(criteria, false);
+    }
+
+    public void ButtonClickViewMap(View view) {
+        drawerLayout.closeDrawer(questsListDrawer);
+        questsListFragment.ButtonClickViewMap(view);
     }
 }
 
