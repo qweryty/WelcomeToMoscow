@@ -58,32 +58,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_maps);
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+
+        questsListFragment = (QuestsListFragment) getFragmentManager().findFragmentById(R.id.quests_list_fragment);
 
         locationService = (LocationManager) getSystemService(LOCATION_SERVICE);
-
         findBestProvider();
-
-        // To avoid: http://www.developerphil.com/dont-store-data-in-the-application-object/
-        // Get quest info, from choose quest activity
-        MainApplication app = (MainApplication) getApplication();
-        currentQuestInfo = app.getCurrentQuestInfo();
-        if (currentQuestInfo == null) {
-            // There is no QuestInfo, just go back to "choose quest menu"
-            finish();
-            return;
-        }
-        playerData = app.getCurrentPlayerData();
-        if (playerData == null) {
-            // There is no PlayerData, just go back to "choose player name" or something
-            finish();
-            return;
-        }
-        currentQuestName = currentQuestInfo.name;
 
         drawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
         achievementsListDrawer = findViewById(R.id.achievments_list_drawer);
@@ -102,8 +83,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 drawerLayout.openDrawer(achievementsListDrawer);
             }
         });
-
-        questsListFragment = (QuestsListFragment) getFragmentManager().findFragmentById(R.id.quests_list_fragment);
     }
 
 
@@ -388,8 +367,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void ButtonClickViewMap(View view) {
-        drawerLayout.closeDrawer(questsListDrawer);
         questsListFragment.ButtonClickViewMap(view);
+
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
+        // To avoid: http://www.developerphil.com/dont-store-data-in-the-application-object/
+        // Get quest info, from choose quest activity
+        MainApplication app = (MainApplication) getApplication();
+        currentQuestInfo = app.getCurrentQuestInfo();
+        if (currentQuestInfo == null) {
+            // There is no QuestInfo, just go back to "choose quest menu"
+            return;
+        }
+        playerData = app.getCurrentPlayerData();
+        if (playerData == null) {
+            // There is no PlayerData, just go back to "choose player name" or something
+            return;
+        }
+        currentQuestName = currentQuestInfo.name;
+        drawerLayout.closeDrawer(questsListDrawer);
     }
 }
 

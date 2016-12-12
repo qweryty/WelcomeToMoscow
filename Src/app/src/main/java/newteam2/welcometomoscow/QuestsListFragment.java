@@ -1,6 +1,8 @@
 package newteam2.welcometomoscow;
 
+import android.app.Activity;
 import android.app.Fragment;
+import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
@@ -31,17 +33,20 @@ public class QuestsListFragment extends Fragment implements AdapterView.OnItemCl
     private final ArrayList<QuestInfo> values = new ArrayList<>();
     private QuestListAdapter adapter;
     private View rootView;
+    private Context attachedContext;
     private Button buttonMaps;
+    private Activity currentActivity;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        currentActivity = getActivity();
         rootView = inflater.inflate(R.layout.fragment_quests_list, container, false);
         // Find the ListView resource.
         chooseQuestList = (ListView) rootView.findViewById(R.id.choose_quest);
 
         // init list
-        adapter = new QuestListAdapter(getActivity(), values);
+        adapter = new QuestListAdapter(currentActivity, values);
         chooseQuestList.setAdapter(adapter);
         chooseQuestList.setOnItemClickListener(this);
 
@@ -54,6 +59,12 @@ public class QuestsListFragment extends Fragment implements AdapterView.OnItemCl
         buttonMaps = (Button)rootView.findViewById(R.id.button_maps);
 
         return rootView;
+    }
+
+    @Override
+    public void onAttach(Context context){
+        super.onAttach(context);
+        attachedContext = context;
     }
 
     private void AddDummyQuests() {
@@ -121,13 +132,13 @@ public class QuestsListFragment extends Fragment implements AdapterView.OnItemCl
                     values.add(response.body());
                     adapter.notifyDataSetChanged();
                 } else {
-                    Toast.makeText(getActivity().getApplicationContext(), "Error1", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(currentActivity.getApplicationContext(), "Error1", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<QuestInfo> call, Throwable t) {
-                Toast.makeText(getActivity().getApplicationContext(), "Error2", Toast.LENGTH_SHORT).show();
+                Toast.makeText(currentActivity.getApplicationContext(), "Error2", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -137,7 +148,7 @@ public class QuestsListFragment extends Fragment implements AdapterView.OnItemCl
             return;
         }
         // Get ready to share quest info
-        MainApplication app = (MainApplication) getActivity().getApplication();
+        MainApplication app = (MainApplication) currentActivity.getApplication();
         app.setCurrentQuestInfo(selectedQuest);
         app.setCurrentPlayerData(playerData);
     }
@@ -146,7 +157,7 @@ public class QuestsListFragment extends Fragment implements AdapterView.OnItemCl
     public void onItemClick(AdapterView<?> parent, View view, int position, long ld) {
         selectedQuest = (QuestInfo) parent.getItemAtPosition(position);
         // show extra info about quest
-        LinearLayout quest_info = (LinearLayout) getActivity().findViewById(R.id.quest_all_info);
+        LinearLayout quest_info = (LinearLayout) currentActivity.findViewById(R.id.quest_all_info);
         TextView quest_long_info = (TextView) quest_info.findViewById(R.id.quest_text_describe);
         quest_long_info.setText(selectedQuest.info_long);
     }
