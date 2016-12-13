@@ -1,11 +1,19 @@
-<resources>
+<resources xmlns:android="http://schemas.android.com/tools">
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="AppTheme" parent="android:Theme.Material.Light">
         <!-- Customize your theme here. -->
+        <item name="android:windowNoTitle">true</item>
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+    </style>
+    <style name="MyProgressBar" parent="Base.Widget.AppCompat.ProgressBar.Horizontal">
+        <item name="android:background">
+            <shape>
+                <solid android:color="#aaa"/>
+            </shape>
+        </item>
     </style>
 
 </resources>

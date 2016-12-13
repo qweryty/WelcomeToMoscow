@@ -11,9 +11,15 @@ import android.location.LocationManager;
 import android.location.LocationListener;
 import android.location.LocationProvider;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.widget.DrawerLayout;
+import android.view.View;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -37,6 +43,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private PlayerData playerData;
     private int EventCounter = 0;
     private boolean cameraIsBusy = false;
+    private FloatingActionButton achievementsButton;
+    private FloatingActionButton questButton;
+    private DrawerLayout drawerLayout;
+    private View questsListDrawer;
+    private View achievementsListDrawer;
+    private QuestsListFragment questsListFragment;
 
     // minimum time interval between latLng updates, in milliseconds
     private static final int min_time_delay = 700;
@@ -46,32 +58,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_maps);
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+
+        questsListFragment = (QuestsListFragment) getFragmentManager().findFragmentById(R.id.quests_list_fragment);
 
         locationService = (LocationManager) getSystemService(LOCATION_SERVICE);
-
         findBestProvider();
 
-        // To avoid: http://www.developerphil.com/dont-store-data-in-the-application-object/
-        // Get quest info, from choose quest activity
-        MainApplication app = (MainApplication) getApplication();
-        currentQuestInfo = app.getCurrentQuestInfo();
-        if (currentQuestInfo == null) {
-            // There is no QuestInfo, just go back to "choose quest menu"
-            finish();
-            return;
-        }
-        playerData = app.getCurrentPlayerData();
-        if (playerData == null) {
-            // There is no PlayerData, just go back to "choose player name" or something
-            finish();
-            return;
-        }
-        currentQuestName = currentQuestInfo.name;
+        drawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
+        achievementsListDrawer = findViewById(R.id.achievments_list_drawer);
+        questsListDrawer = findViewById(R.id.quests_list_drawer);
+        questButton = (FloatingActionButton)findViewById(R.id.quests_button);
+        questButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                drawerLayout.openDrawer(questsListDrawer);
+            }
+        });
+        achievementsButton = (FloatingActionButton)findViewById(R.id.achievements_button);
+        achievementsButton.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                drawerLayout.openDrawer(achievementsListDrawer);
+            }
+        });
     }
 
 
@@ -353,6 +364,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Define the criteria how to select the locatioin provider -> use default
         Criteria criteria = new Criteria();
         providerName = locationService.getBestProvider(criteria, false);
+    }
+
+    public void ButtonClickViewMap(View view) {
+        questsListFragment.ButtonClickViewMap(view);
+
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
+        // To avoid: http://www.developerphil.com/dont-store-data-in-the-application-object/
+        // Get quest info, from choose quest activity
+        MainApplication app = (MainApplication) getApplication();
+        currentQuestInfo = app.getCurrentQuestInfo();
+        if (currentQuestInfo == null) {
+            // There is no QuestInfo, just go back to "choose quest menu"
+            return;
+        }
+        playerData = app.getCurrentPlayerData();
+        if (playerData == null) {
+            // There is no PlayerData, just go back to "choose player name" or something
+            return;
+        }
+        currentQuestName = currentQuestInfo.name;
+        drawerLayout.closeDrawer(questsListDrawer);
     }
 }
 
