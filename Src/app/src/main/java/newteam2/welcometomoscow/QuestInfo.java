@@ -26,10 +26,6 @@ class QuestInfo {
     @Expose
     String info_short;
 
-    @SerializedName("long_desc")
-    @Expose
-    String info_long;
-
     @SerializedName("events")
     @Expose
     List<QuestEvent> events;
@@ -46,7 +42,6 @@ class QuestInfo {
             , long id, List<QuestEvent> event) {
         this.name = name;
         this.info_short = info_short;
-        this.info_long = info_long;
         this.iconId = icon;
         this.id = id;
         this.events = event;
@@ -62,10 +57,6 @@ class QuestInfo {
 
     public List<QuestEvent> getEvents() {
         return events;
-    }
-
-    public String getInfo_long() {
-        return info_long;
     }
 
     public String getInfo_short() {
