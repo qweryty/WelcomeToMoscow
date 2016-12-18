@@ -21,18 +21,23 @@ class QuestInfo {
     @SerializedName("name")
     @Expose
     String name;
+
     @SerializedName("desc")
     @Expose
     String info_short;
+
     @SerializedName("long_desc")
     @Expose
     String info_long;
+
     @SerializedName("events")
     @Expose
     List<QuestEvent> events;
+
     @SerializedName("icon_id")
     @Expose
     int iconId;
+
     @SerializedName("id")
     @Expose
     long id;
@@ -45,5 +50,29 @@ class QuestInfo {
         this.iconId = icon;
         this.id = id;
         this.events = event;
+    }
+
+    public int getIconId() {
+        return iconId;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public List<QuestEvent> getEvents() {
+        return events;
+    }
+
+    public String getInfo_long() {
+        return info_long;
+    }
+
+    public String getInfo_short() {
+        return info_short;
+    }
+
+    public String getName() {
+        return name;
     }
 }

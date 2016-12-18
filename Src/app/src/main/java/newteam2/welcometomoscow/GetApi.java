@@ -1,8 +1,12 @@
 package newteam2.welcometomoscow;
 
-import java.util.List;
+import com.google.gson.JsonArray;
+
+
+import java.util.ArrayList;
 
 import retrofit2.Call;
+import retrofit2.Response;
 import retrofit2.http.GET;
 
 /**
@@ -10,6 +14,6 @@ import retrofit2.http.GET;
  */
 
 public interface GetApi {
-    @GET("quest/1")
-    Call<QuestInfo> getData();
+    @GET("quest/all")
+    Call<ResponseQ> getData();
 }

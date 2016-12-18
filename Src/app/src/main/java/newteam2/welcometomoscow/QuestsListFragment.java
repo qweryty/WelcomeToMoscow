@@ -17,7 +17,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.reflect.TypeToken;
 
+import org.json.JSONArray;
+
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +31,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class QuestsListFragment extends Fragment implements AdapterView.OnItemClickListener{
+public class QuestsListFragment extends Fragment implements AdapterView.OnItemClickListener {
 
     private ListView chooseQuestList;
     private QuestInfo selectedQuest;
@@ -51,18 +57,18 @@ public class QuestsListFragment extends Fragment implements AdapterView.OnItemCl
         chooseQuestList.setOnItemClickListener(this);
 
         // add quests
-        AddDummyQuests();
         DownloadQuestsAsync();
+        AddDummyQuests();
 
         // make default player info, no name, no nothing
         playerData = new PlayerData();
-        buttonMaps = (Button)rootView.findViewById(R.id.button_maps);
+        buttonMaps = (Button) rootView.findViewById(R.id.button_maps);
 
         return rootView;
     }
 
     @Override
-    public void onAttach(Context context){
+    public void onAttach(Context context) {
         super.onAttach(context);
         attachedContext = context;
     }
@@ -123,21 +129,24 @@ public class QuestsListFragment extends Fragment implements AdapterView.OnItemCl
 
     private void DownloadQuestsAsync() {
         GetApi getApi = GetData.getRetrofit().create(GetApi.class);
-        Call<QuestInfo> obj = getApi.getData();
-        // callbacks will be executed on main thread
-        obj.enqueue(new Callback<QuestInfo>() {
+
+        Call<ResponseQ> obj = getApi.getData();
+        obj.enqueue(new Callback<ResponseQ>() {
             @Override
-            public void onResponse(Call<QuestInfo> call, Response<QuestInfo> response) {
+            public void onResponse(Call<ResponseQ> call, Response<ResponseQ> response) {
                 if (response.isSuccessful()) {
-                    values.add(response.body());
-                    adapter.notifyDataSetChanged();
+                    List<QuestInfo> listQuest = response.body().getQuestList();
+                    for (QuestInfo questInfo : listQuest) {
+                        values.add(questInfo);
+                        adapter.notifyDataSetChanged();
+                    }
                 } else {
                     Toast.makeText(currentActivity.getApplicationContext(), "Error1", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
-            public void onFailure(Call<QuestInfo> call, Throwable t) {
+            public void onFailure(Call<ResponseQ> call, Throwable t) {
                 Toast.makeText(currentActivity.getApplicationContext(), "Error2", Toast.LENGTH_SHORT).show();
             }
         });
