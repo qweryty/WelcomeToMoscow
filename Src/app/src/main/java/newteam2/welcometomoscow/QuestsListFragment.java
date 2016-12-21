@@ -113,6 +113,6 @@ public class QuestsListFragment extends Fragment implements AdapterView.OnItemCl
         // show extra info about quest
         LinearLayout quest_info = (LinearLayout) currentActivity.findViewById(R.id.quest_all_info);
         TextView quest_long_info = (TextView) quest_info.findViewById(R.id.quest_text_describe);
-        quest_long_info.setText(selectedQuest.info_long);
+        quest_long_info.setText(selectedQuest.info_short);
     }
 }
