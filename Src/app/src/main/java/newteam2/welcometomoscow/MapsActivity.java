@@ -49,6 +49,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private View questsListDrawer;
     private View achievementsListDrawer;
     private QuestsListFragment questsListFragment;
+    private boolean askedForPermissions;
+    private static final int MY_PERMISSIONS_REQUEST_GPS = 99;
+    private boolean GPSPermsAllowed;
 
     // minimum time interval between latLng updates, in milliseconds
     private static final int min_time_delay = 700;
@@ -58,13 +61,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_maps);
+
+        playerData = new PlayerData();
+        MainApplication app = (MainApplication) getApplication();
+        app.setCurrentPlayerData(playerData);
 
         questsListFragment = (QuestsListFragment) getFragmentManager().findFragmentById(R.id.quests_list_fragment);
 
         locationService = (LocationManager) getSystemService(LOCATION_SERVICE);
-        findBestProvider();
 
         drawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
         achievementsListDrawer = findViewById(R.id.achievments_list_drawer);
@@ -89,19 +94,58 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onPause() {
         super.onPause();
-        Pause();
+        PauseGPSTracking();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        boolean enabled = locationService.isProviderEnabled(LocationManager.GPS_PROVIDER);
+
         // ask to turn on GPS if its not enabled
-        if (!enabled) {
+        if (!locationService.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             DialogFragment d = new DialogToEnableGPS();
             d.show(getSupportFragmentManager(), "gps_dialog");
+            return;
         }
-        Resume();
+
+        if (!askedForPermissions) {
+            askedForPermissions = true;
+            if (needToRequestGPSPermissions()) {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                        MY_PERMISSIONS_REQUEST_GPS);
+                return;
+            } else {
+                GPSPermsAllowed = true;
+            }
+        }
+
+        ResumeGPSTracking();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_GPS:
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0) {
+
+                    if (grantResults[0] == PackageManager.PERMISSION_GRANTED
+                            || (grantResults.length > 1 && grantResults[1] == PackageManager.PERMISSION_GRANTED)) {
+                        GPSPermsAllowed = true;
+                    }
+
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+
+                } else {
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+
+                break;
+        }
     }
 
     /**
@@ -161,7 +205,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 if (marker.getTag() instanceof QuestEvent) {
                     // when its a quest marker, start new activity with photos/story
                     MainApplication app = (MainApplication) getApplication();
-                    app.setCurrentPlayerData(playerData);
                     app.setCurrentQuestEvent((QuestEvent) marker.getTag());
                     Intent i = new Intent(MapsActivity.this, QuestEventActivity.class);
                     startActivity(i);
@@ -173,21 +216,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
-    /**
-     * Method to perform permission checks for latLng access.
-     * @param perm_name Name of the permission. Either: ACCESS_COARSE_LOCATION or ACCESS_FINE_LOCATION
-     * @return True if enabled.
-     */
-    private boolean checkPermission(String perm_name) {
-        if (BuildConfig.DEBUG) {
-            //noinspection ConstantConditions
-            if (perm_name != Manifest.permission.ACCESS_COARSE_LOCATION
-                    && perm_name != Manifest.permission.ACCESS_FINE_LOCATION)
-            {
-                throw new AssertionError("This permission name should not be here");
-            }
-        }
-        return ActivityCompat.checkSelfPermission(this, perm_name) == PackageManager.PERMISSION_GRANTED;
+    private boolean needToRequestGPSPermissions() {
+        return ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                    == PackageManager.PERMISSION_DENIED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                    == PackageManager.PERMISSION_DENIED;
     }
 
     /**
@@ -236,6 +269,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      */
     private void UpdateLocationMarker() {
         playerData.latLng = getLatLng();
+        // if there is no userMarker than we haven't selceted any questa yet
+        if (userMapMarker == null) {
+            return;
+        }
         userMapMarker.setPosition(playerData.latLng);
         // only move the camera to player position, when its free
         if (! cameraIsBusy) {
@@ -245,12 +282,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // check for next quest
         if (EventCounter < currentQuestInfo.events.size()) {
             final QuestEvent nextEv = currentQuestInfo.events.get(EventCounter);
-            if (nextEv.isReady.test(playerData)) {
+            if (nextEv.isReady(playerData)) {
                 // player is ready for the next event
                 EventCounter++;
 
                 // add marker on map
-                LatLng qmLatLng = nextEv.mapLatLng;
+                LatLng qmLatLng = nextEv.getLatLng();
                 MarkerOptions questMark = new MarkerOptions()
                         .position(qmLatLng)
                         .title("QUEST")
@@ -292,25 +329,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     /**
      * Start querying for latLng updates. Call this in onResume of containing Activity
      */
-    public void Resume() {
-        if (checkPermission(Manifest.permission.ACCESS_FINE_LOCATION)
-                || checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION))
+    @SuppressWarnings("MissingPermission")
+    public void ResumeGPSTracking() {
+        if (GPSPermsAllowed)
         {
+            findBestProvider();
             // request initial latLng
             if (currentLocation == null) {
                 currentLocation = locationService.getLastKnownLocation(providerName);
             }
             // and sign up for updates
-            locationService.requestLocationUpdates(providerName, min_time_delay, min_distance, (android.location.LocationListener) this);
+            locationService.requestLocationUpdates(providerName, min_time_delay, min_distance, this);
         }
     }
 
     /**
      * Pause querying for latLng updates. Call this in onPause of Activity
      */
-    public void Pause() {
-        if (checkPermission(Manifest.permission.ACCESS_FINE_LOCATION)
-                || checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION))
+    @SuppressWarnings("MissingPermission")
+    public void PauseGPSTracking() {
+        if (GPSPermsAllowed)
         {
             locationService.removeUpdates(this);
         }
@@ -379,11 +417,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         currentQuestInfo = app.getCurrentQuestInfo();
         if (currentQuestInfo == null) {
             // There is no QuestInfo, just go back to "choose quest menu"
-            return;
-        }
-        playerData = app.getCurrentPlayerData();
-        if (playerData == null) {
-            // There is no PlayerData, just go back to "choose player name" or something
             return;
         }
         currentQuestName = currentQuestInfo.name;

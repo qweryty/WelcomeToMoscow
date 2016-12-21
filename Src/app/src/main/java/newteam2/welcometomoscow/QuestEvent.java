@@ -5,24 +5,45 @@ package newteam2.welcometomoscow;
  */
 
 
-import com.google.android.gms.maps.model.LatLng;
+import android.location.Location;
+import android.util.Log;
 
+import com.google.android.gms.maps.model.LatLng;
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 
 
 public class QuestEvent {
-    LatLng mapLatLng;
-    /**
-     * Text about the place and guide to the next place.
-     */
-    String text;
-    /**
-     * Call this to check if its time to execute the quest event.
-     */
-    QuestEventPredicate isReady;
 
-    QuestEvent(String text, LatLng latlng, QuestEventPredicate checkReady) {
-        this.text = text;
-        this.mapLatLng = latlng;
-        isReady = checkReady;
+    @SerializedName("lat")
+    @Expose
+    double latitude;
+
+    @SerializedName("long")
+    @Expose
+    double longitude;
+
+    @SerializedName("desc")
+    @Expose
+    String text;
+
+    LatLng getLatLng() {
+        return new LatLng(latitude, longitude);
     }
+
+    boolean isReady(PlayerData playerData) {
+        float result[] = new float[1];
+        Location.distanceBetween(playerData.latLng.latitude
+                , playerData.latLng.longitude
+                , latitude
+                , longitude
+                , result);
+        // result has the distance in meters (if less than X meters, return true)
+        //Log.i("iamnp", result[0] + " meters");
+        return result[0] < dist;
+    }
+
+    @SerializedName("dist")
+    @Expose
+    int dist;
 }

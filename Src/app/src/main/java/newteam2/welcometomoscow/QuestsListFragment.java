@@ -35,7 +35,6 @@ public class QuestsListFragment extends Fragment implements AdapterView.OnItemCl
 
     private ListView chooseQuestList;
     private QuestInfo selectedQuest;
-    private PlayerData playerData;
     private final ArrayList<QuestInfo> values = new ArrayList<>();
     private QuestListAdapter adapter;
     private View rootView;
@@ -60,7 +59,6 @@ public class QuestsListFragment extends Fragment implements AdapterView.OnItemCl
         DownloadQuestsAsync();
 
         // make default player info, no name, no nothing
-        playerData = new PlayerData();
         buttonMaps = (Button) rootView.findViewById(R.id.button_maps);
 
         return rootView;
@@ -83,8 +81,8 @@ public class QuestsListFragment extends Fragment implements AdapterView.OnItemCl
                     List<QuestInfo> listQuest = response.body().getQuestList();
                     for (QuestInfo questInfo : listQuest) {
                         values.add(questInfo);
-                        adapter.notifyDataSetChanged();
                     }
+                    adapter.notifyDataSetChanged();
                 } else {
                     Toast.makeText(currentActivity.getApplicationContext(), "Error1", Toast.LENGTH_SHORT).show();
                 }
@@ -104,7 +102,6 @@ public class QuestsListFragment extends Fragment implements AdapterView.OnItemCl
         // Get ready to share quest info
         MainApplication app = (MainApplication) currentActivity.getApplication();
         app.setCurrentQuestInfo(selectedQuest);
-        app.setCurrentPlayerData(playerData);
     }
 
     @Override
