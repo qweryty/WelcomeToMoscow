@@ -1,9 +1,9 @@
 <resources>
     <string name="app_name">Welcome To Moscow</string>
     <string name="title_activity_maps">Map</string>
-    <string name="view_map">View map</string>
+    <string name="start_quest">Начать</string>
     <string name="quest_text_describe_debug">This is the quest description. It tells you what the quest is about and what area of moscow you will visit and how long it will take.</string>
-    <string name="text_my_title">Choose your quest!</string>
+    <string name="text_my_title">Выберите квест</string>
     <string name="ask_gps_dialog">This app works better with GPS enabled. Turn on GPS now?</string>
     <string name="answer_yes">yes</string>
     <string name="answer_no">no</string>

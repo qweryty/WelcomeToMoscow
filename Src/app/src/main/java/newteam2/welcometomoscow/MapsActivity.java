@@ -127,8 +127,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         MarkerOptions user_opts = new MarkerOptions()
                 .position(user_loc)
                 .title("You")
-                .snippet(currentQuestName)
-                .rotation(180.0f);
+                .snippet(currentQuestName);
         userMapMarker = mMap.addMarker(user_opts);
 
         // set up camera

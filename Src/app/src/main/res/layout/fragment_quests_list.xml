@@ -14,6 +14,7 @@
         android:layout_height="wrap_content"
         android:text="@string/text_my_title"
         android:id="@+id/text_my_view"
+        android:textSize="20sp"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="11dp" />
@@ -27,16 +28,17 @@
         android:id="@+id/quest_all_info">
 
         <TextView
-            android:text="@string/quest_text_describe_debug"
+            android:text=" "
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/quest_text_describe" />
 
         <Button
-            android:text="@string/view_map"
+            android:text="@string/start_quest"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/button_maps"
+            android:enabled="false"
             android:onClick="ButtonClickViewMap"/>
     </LinearLayout>
 
