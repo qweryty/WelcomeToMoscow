@@ -27,6 +27,10 @@ public class QuestEvent {
     @Expose
     String text;
 
+    @SerializedName("name")
+    @Expose
+    String name;
+
     LatLng getLatLng() {
         return new LatLng(latitude, longitude);
     }

@@ -170,7 +170,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng user_loc = getLatLng();
         MarkerOptions user_opts = new MarkerOptions()
                 .position(user_loc)
-                .title("You")
+                .title("Вы")
                 .snippet(currentQuestName);
         userMapMarker = mMap.addMarker(user_opts);
 
@@ -290,7 +290,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 LatLng qmLatLng = nextEv.getLatLng();
                 MarkerOptions questMark = new MarkerOptions()
                         .position(qmLatLng)
-                        .title("QUEST")
+                        .title(nextEv.name)
                         .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_quest_event_map_click));
                 Marker m = mMap.addMarker(questMark);
 
