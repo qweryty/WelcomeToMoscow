@@ -20,6 +20,9 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.DrawerLayout;
 import android.view.View;
+import android.widget.NumberPicker;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -30,6 +33,8 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.util.Formatter;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener {
 
@@ -52,6 +57,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private boolean askedForPermissions;
     private static final int MY_PERMISSIONS_REQUEST_GPS = 99;
     private boolean GPSPermsAllowed;
+    private ProgressBar questProgressBar;
+    private TextView questProgressText;
 
     // minimum time interval between latLng updates, in milliseconds
     private static final int min_time_delay = 700;
@@ -75,6 +82,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         achievementsListDrawer = findViewById(R.id.achievments_list_drawer);
         questsListDrawer = findViewById(R.id.quests_list_drawer);
         questButton = (FloatingActionButton)findViewById(R.id.quests_button);
+        questProgressBar = (ProgressBar)findViewById(R.id.quests_progress_bar);
+        questProgressText = (TextView) findViewById(R.id.quests_progress_text);
         questButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -271,6 +280,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         playerData.latLng = getLatLng();
         // if there is no userMarker than we haven't selceted any questa yet
         if (userMapMarker == null) {
+            nullProgress();
             return;
         }
         userMapMarker.setPosition(playerData.latLng);
@@ -307,10 +317,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     animateCameraTo(qmLatLng);
                 }
             }
+            // Update progressbar
+            updateProgress();
         }
         else {
+            // Update progressbar
+            nullProgress();
             // TODO: if there are no locations, show the ending screen
         }
+    }
+
+    private void updateProgress(){
+        questProgressBar.setProgress(100 * EventCounter / currentQuestInfo.events.size());
+        questProgressText.setText(String.format("выполнено %d из %d условий", EventCounter, currentQuestInfo.events.size()));
+    }
+
+    private void nullProgress(){
+        EventCounter = 0;
+        questProgressBar.setProgress(0);
+        questProgressText.setText("Квест не выбран");
     }
 
     /**
@@ -421,6 +446,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         currentQuestName = currentQuestInfo.name;
         drawerLayout.closeDrawer(questsListDrawer);
+
+        updateProgress();
     }
 }
 
